@@ -34,7 +34,8 @@ p {
   margin-bottom: 20px;
 }
 
-#signupForm input {
+/* === Form Inputs (Signup, Login, Skill) === */
+.card form input {
   width: 90%;
   margin: 12px auto;
   display: block;
@@ -44,13 +45,14 @@ p {
   font-size: 14px;
 }
 
-#signupForm input:focus {
+.card form input:focus {
   border-color: #28a745;
   outline: none;
   box-shadow: 0px 0px 5px rgba(40, 167, 69, 0.5);
 }
 
-#signupForm button {
+/* === Form Buttons === */
+.card form button {
   display: block;
   margin: 20px auto;
   padding: 12px 30px;
@@ -64,15 +66,16 @@ p {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-#signupForm button:hover {
+.card form button:hover {
   background-color: #218838;
   transform: scale(1.05);
 }
 
-#signupForm button:active {
+.card form button:active {
   transform: scale(0.97);
 }
 
+/* === Messages === */
 .error {
   color: #dc3545;
   font-size: 12px;

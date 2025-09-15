@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Skill Barter App</title>
+  <title>Skill Swap App</title>
   <link rel="stylesheet" href="style.css">
   <style>
     .hidden {
@@ -28,12 +28,12 @@
 </head>
 
 <body>
-  <h1>Welcome to Skill Barter</h1>
+  <h1>Welcome to Skill Swap</h1>
   <p>Exchange your skills here</p>
 
   <div class="row" id="authRow">
     <!-- Sign Up -->
-    <div class="card" id="signupCard">
+    <div class="card" id="signupSection">
       <h2>Sign Up</h2>
       <form id="signupForm">
         <input type="text" id="firstName" placeholder="First Name" required>
@@ -48,7 +48,7 @@
     </div>
 
     <!-- Login -->
-    <div class="card" id="loginCard">
+    <div class="card hidden" id="loginSection">
       <h2>Sign In</h2>
       <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Email" required>
@@ -60,15 +60,15 @@
   </div>
 
   <!-- Skills Section (hidden until login) -->
-  <div class="card hidden" id="skillsSection">
+  <div class="card hidden" id="skillSection">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <h2 style="margin:0;">Add Your Skills</h2>
       <button id="logoutBtn" type="button">Logout</button>
     </div>
 
     <form id="skillForm">
-      <input type="text" id="offer" placeholder="Skill you can offer (e.g., English)">
-      <input type="text" id="want" placeholder="Skill you want (e.g., Spanish)">
+      <input type="text" id="offerSkill" placeholder="Skill you can offer (e.g., English)">
+      <input type="text" id="wantSkill" placeholder="Skill you want (e.g., Spanish)">
       <button type="submit">Save Skills</button>
     </form>
 
@@ -77,7 +77,6 @@
     <hr />
     <h3>Matches</h3>
     <div id="matches"></div>
-    <p class="tiny">Matching will be wired up in the next step.</p>
   </div>
 
   <script src="script.js"></script>

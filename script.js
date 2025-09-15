@@ -1,7 +1,9 @@
-document.getElementById("signupForm").addEventListener("submit", function (e) {
+const API_URL = "http://localhost:10000"; // Change later to Render URL
+
+// ===== SIGNUP =====
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  // Get values
   const firstName = document.getElementById("firstName").value.trim();
   const lastName = document.getElementById("lastName").value.trim();
   const age = parseInt(document.getElementById("age").value);
@@ -9,64 +11,122 @@ document.getElementById("signupForm").addEventListener("submit", function (e) {
   const phone = document.getElementById("phone").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  // Get error fields
-  const firstNameError = document.getElementById("firstNameError");
-  const lastNameError = document.getElementById("lastNameError");
-  const ageError = document.getElementById("ageError");
-  const emailError = document.getElementById("emailError");
-  const phoneError = document.getElementById("phoneError");
-  const passwordError = document.getElementById("passwordError");
-  const successMessage = document.getElementById("successMessage");
-
-  // Reset messages
-  [firstNameError, lastNameError, ageError, emailError, phoneError, passwordError].forEach(e => e.textContent = "");
+  const successMessage = document.getElementById("signupMsg");
   successMessage.textContent = "";
-  successMessage.className = "";
 
-  let valid = true;
-
-  // Name checks
-  if (firstName.length < 2) {
-    firstNameError.textContent = "First name must be at least 2 characters.";
-    valid = false;
-  }
-  if (lastName.length < 2) {
-    lastNameError.textContent = "Last name must be at least 2 characters.";
-    valid = false;
+  if (!firstName || !lastName || !email || !password) {
+    successMessage.textContent = "⚠️ All fields are required.";
+    successMessage.style.color = "red";
+    return;
   }
 
-  // Age
-  if (isNaN(age) || age < 18) {
-    ageError.textContent = "You must be 18 or older to sign up.";
-    valid = false;
+  try {
+    const res = await fetch(`${API_URL}/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, lastName, age, email, phone, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      successMessage.textContent = "✅ Signup successful! Please log in.";
+      successMessage.style.color = "green";
+      document.getElementById("signupForm").reset();
+
+      document.getElementById("loginSection").style.display = "block";
+    } else {
+      successMessage.textContent = "⚠️ " + (data.error || "Signup failed.");
+      successMessage.style.color = "red";
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    successMessage.textContent = "❌ Server error";
+    successMessage.style.color = "red";
+  }
+});
+
+// ===== LOGIN =====
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value.trim();
+  const loginMsg = document.getElementById("loginMsg");
+
+  try {
+    const res = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      loginMsg.textContent = "✅ Login successful!";
+      loginMsg.style.color = "green";
+
+      // Save userId for skills
+      localStorage.setItem("userId", data.userId);
+
+      document.getElementById("signupSection").style.display = "none";
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("skillSection").style.display = "block";
+
+      console.log("User logged in:", data.user);
+    } else {
+      loginMsg.textContent = "⚠️ " + (data.error || "Login failed.");
+      loginMsg.style.color = "red";
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    loginMsg.textContent = "❌ Server error";
+    loginMsg.style.color = "red";
+  }
+});
+
+// ===== SKILL FORM =====
+document.getElementById("skillForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const offer = document.getElementById("offerSkill").value.trim();
+  const want = document.getElementById("wantSkill").value.trim();
+  const skillMsg = document.getElementById("skillMsg");
+
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    skillMsg.textContent = "⚠️ Please login first.";
+    skillMsg.style.color = "red";
+    return;
   }
 
-  // Email regex
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(email)) {
-    emailError.textContent = "Enter a valid email address.";
-    valid = false;
-  }
+  try {
+    const res = await fetch(`${API_URL}/skills`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, offer, want })
+    });
 
-  // Phone regex
-  const phonePattern = /^\+?\d{7,15}$/;
-  if (!phonePattern.test(phone)) {
-    phoneError.textContent = "Enter a valid phone number (7–15 digits).";
-    valid = false;
-  }
+    const data = await res.json();
 
-  // Password strength
-  const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{6,}$/;
-  if (!passwordPattern.test(password)) {
-    passwordError.textContent =
-      "Password must be 6+ chars, include uppercase, lowercase, and a number.";
-    valid = false;
-  }
+    if (res.ok) {
+      skillMsg.textContent = data.message;
+      skillMsg.style.color = "green";
 
-  // Success
-  if (valid) {
-    successMessage.textContent = "Signup successful! 🎉";
-    successMessage.className = "success";
-    document.getElementById("signupForm").reset();
+      if (data.match) {
+        skillMsg.textContent += ` 🎯 Matched with user offering "${data.match.offer}" and wanting "${data.match.want}"`;
+      }
+
+      document.getElementById("skillForm").reset();
+    } else {
+      skillMsg.textContent = "⚠️ " + (data.error || "Skill add failed.");
+      skillMsg.style.color = "red";
+    }
+  } catch (err) {
+    console.error("Error:", err);
+    skillMsg.textContent = "❌ Server error";
+    skillMsg.style.color = "red";
   }
 });
