@@ -1,0 +1,93 @@
+body {
+  background-image: url("background.png");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  background-position: top left;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+h1 {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  font-size: 50px;
+}
+
+p {
+  color: red;
+  font-weight: bold;
+  text-align: center;
+  font-size: 30px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  margin: 50px auto;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#signupForm input {
+  width: 90%;
+  margin: 12px auto;
+  display: block;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+#signupForm input:focus {
+  border-color: #28a745;
+  outline: none;
+  box-shadow: 0px 0px 5px rgba(40, 167, 69, 0.5);
+}
+
+#signupForm button {
+  display: block;
+  margin: 20px auto;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  background-color: #28a745;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  width: auto;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#signupForm button:hover {
+  background-color: #218838;
+  transform: scale(1.05);
+}
+
+#signupForm button:active {
+  transform: scale(0.97);
+}
+
+.error {
+  color: #dc3545;
+  font-size: 12px;
+  margin: 4px 0 8px 5px;
+  display: block;
+}
+
+#successMessage {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+#successMessage.success {
+  color: #28a745;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
