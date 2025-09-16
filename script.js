@@ -1,132 +1,76 @@
-const API_URL = "http://localhost:10000"; // Change later to Render URL
+// Auto-switch API: local when opened on localhost/127.0.0.1/file://, otherwise Render
+const API_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === "")
+  ? "http://localhost:10000"
+  : "https://skillbarter-ja8s.onrender.com";
 
 // ===== SIGNUP =====
-document.getElementById("signupForm").addEventListener("submit", async function (e) {
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const firstName = document.getElementById("firstName").value.trim();
-  const lastName = document.getElementById("lastName").value.trim();
-  const age = parseInt(document.getElementById("age").value);
-  const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  const successMessage = document.getElementById("signupMsg");
-  successMessage.textContent = "";
-
-  if (!firstName || !lastName || !email || !password) {
-    successMessage.textContent = "⚠️ All fields are required.";
-    successMessage.style.color = "red";
-    return;
-  }
+  const user = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value,
+    offer: document.getElementById("offer").value,
+    want: document.getElementById("want").value,
+    phone: document.getElementById("phone").value,
+    cell: document.getElementById("cell").value,
+    whatsapp: document.getElementById("whatsapp").value,
+    facebook: document.getElementById("facebook").value,
+    zoom: document.getElementById("zoom").value,
+  };
 
   try {
     const res = await fetch(`${API_URL}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstName, lastName, age, email, phone, password })
+      body: JSON.stringify(user),
     });
 
     const data = await res.json();
-
-    if (res.ok) {
-      successMessage.textContent = "✅ Signup successful! Please log in.";
-      successMessage.style.color = "green";
-      document.getElementById("signupForm").reset();
-
-      document.getElementById("loginSection").style.display = "block";
-    } else {
-      successMessage.textContent = "⚠️ " + (data.error || "Signup failed.");
-      successMessage.style.color = "red";
-    }
+    document.getElementById("signupMsg").innerText =
+      data.message || "Signup successful!";
   } catch (err) {
-    console.error("Error:", err);
-    successMessage.textContent = "❌ Server error";
-    successMessage.style.color = "red";
+    document.getElementById("signupMsg").innerText = "❌ Error signing up.";
   }
 });
 
 // ===== LOGIN =====
-document.getElementById("loginForm").addEventListener("submit", async function (e) {
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value.trim();
-  const loginMsg = document.getElementById("loginMsg");
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
 
   try {
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      loginMsg.textContent = "✅ Login successful!";
-      loginMsg.style.color = "green";
+      // ✅ Save all user info to localStorage
+      localStorage.setItem("userId", data.user._id);
+      localStorage.setItem("userName", data.user.name);
+      localStorage.setItem("userEmail", data.user.email);
+      localStorage.setItem("userOffer", data.user.offer);
+      localStorage.setItem("userWant", data.user.want);
+      localStorage.setItem("userPhone", data.user.phone || "");
+      localStorage.setItem("userCell", data.user.cell || "");
+      localStorage.setItem("userWhatsapp", data.user.whatsapp || "");
+      localStorage.setItem("userFacebook", data.user.facebook || "");
+      localStorage.setItem("userZoom", data.user.zoom || "");
 
-      // Save userId for skills
-      localStorage.setItem("userId", data.userId);
-
-      document.getElementById("signupSection").style.display = "none";
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("skillSection").style.display = "block";
-
-      console.log("User logged in:", data.user);
+      document.getElementById("loginMsg").innerText = "✅ Login successful!";
+      window.location.href = "dashboard.html";
     } else {
-      loginMsg.textContent = "⚠️ " + (data.error || "Login failed.");
-      loginMsg.style.color = "red";
+      document.getElementById("loginMsg").innerText =
+        data.message || "❌ Invalid login.";
     }
   } catch (err) {
-    console.error("Error:", err);
-    loginMsg.textContent = "❌ Server error";
-    loginMsg.style.color = "red";
-  }
-});
-
-// ===== SKILL FORM =====
-document.getElementById("skillForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-
-  const offer = document.getElementById("offerSkill").value.trim();
-  const want = document.getElementById("wantSkill").value.trim();
-  const skillMsg = document.getElementById("skillMsg");
-
-  const userId = localStorage.getItem("userId");
-
-  if (!userId) {
-    skillMsg.textContent = "⚠️ Please login first.";
-    skillMsg.style.color = "red";
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/skills`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, offer, want })
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      skillMsg.textContent = data.message;
-      skillMsg.style.color = "green";
-
-      if (data.match) {
-        skillMsg.textContent += ` 🎯 Matched with user offering "${data.match.offer}" and wanting "${data.match.want}"`;
-      }
-
-      document.getElementById("skillForm").reset();
-    } else {
-      skillMsg.textContent = "⚠️ " + (data.error || "Skill add failed.");
-      skillMsg.style.color = "red";
-    }
-  } catch (err) {
-    console.error("Error:", err);
-    skillMsg.textContent = "❌ Server error";
-    skillMsg.style.color = "red";
+    document.getElementById("loginMsg").innerText = "❌ Error logging in.";
   }
 });

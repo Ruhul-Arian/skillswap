@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillSwap Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="card">
+    <h2>Welcome to SkillSwap</h2>
+    <p><strong>Name:</strong> <span id="userName"></span></p>
+    <p><strong>Email:</strong> <span id="userEmail"></span></p>
+    <p><strong>Offers:</strong> <span id="userOffer"></span></p>
+    <p><strong>Wants:</strong> <span id="userWant"></span></p>
+    <p><strong>Phone:</strong> <a id="userPhone" href="#"></a></p>
+    <p><strong>Cell:</strong> <a id="userCell" href="#"></a></p>
+    <p><strong>WhatsApp:</strong> <a id="userWhatsapp" href="#" target="_blank"></a></p>
+    <p><strong>Facebook:</strong> <a id="userFacebook" href="#" target="_blank">Link</a></p>
+    <p><strong>Zoom:</strong> <a id="userZoom" href="#" target="_blank">Link</a></p>
+
+    <h3>Your Matches</h3>
+    <div id="matches">
+      <p>No matches found yet.</p>
+    </div>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+
+</html>
