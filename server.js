@@ -1,3 +1,7 @@
+
+const path = require("path");
+
+// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -8,105 +12,140 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const MONGO_URI = process.env.MONGO_URI;
 
-app.use(cors({
-  origin: "https://ruhul-arian.github.io",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
+// ====== Middleware ======
+app.use(cors());
 app.use(express.json());
+// Serve all static frontend files from the repo root
+app.use(express.static(__dirname));
 
-// ===== MongoDB Connection =====
+// Serve the homepage
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+
+// DEBUG: log each incoming request (method + path)
+app.use((req, res, next) => {
+  console.log(`➡️  ${req.method} ${req.url}`);
+  next();
+});
+
+// ====== DB Connection ======
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch(err => console.error("❌ MongoDB error:", err));
+  .catch(err => console.error("❌ MongoDB connection error:", err));
 
-// ===== User Schema =====
+// ====== User Schema ======
 const userSchema = new mongoose.Schema({
-  firstName: String,
-  lastName: String,
-  age: Number,
+  name: String,
   email: { type: String, unique: true },
+  password: String,
+  offer: String,
+  want: String,
   phone: String,
-  password: String
+  cell: String,
+  whatsapp: String,
+  facebook: String,
+  zoom: String
 });
+
 const User = mongoose.model("User", userSchema);
 
-// ===== Signup =====
+// ====== Signup Route ======
 app.post("/signup", async (req, res) => {
   try {
-    const { firstName, lastName, age, email, phone, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
+    // DEBUG — mask password in logs
+    const safeBody = { ...req.body, password: req.body?.password ? "***" : undefined };
+    console.log("📩 /signup body:", safeBody);
 
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ error: "User already exists" });
+    const { name, email, password, offer, want, phone, cell, whatsapp, facebook, zoom } = req.body;
 
-    const hashed = await bcrypt.hash(password, 10);
-    const newUser = new User({ firstName, lastName, age, email, phone, password: hashed });
+    if (!name || !email || !password) {
+      console.log("⚠️ /signup missing fields:", { name: !!name, email: !!email, password: !!password });
+      return res.status(400).json({ message: "⚠️ Missing required fields" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      console.log("⚠️ /signup user exists:", email);
+      return res.status(400).json({ message: "⚠️ User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({ name, email, password: hashedPassword, offer, want, phone, cell, whatsapp, facebook, zoom });
     await newUser.save();
 
-    res.json({ ok: true, message: "Signup successful!" });
+    console.log("✅ /signup saved:", { _id: newUser._id, email: newUser.email });
+    res.json({ message: "✅ Signup successful", user: newUser });
   } catch (err) {
-    console.error("Signup error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ /signup error:", err);
+    res.status(500).json({ message: "❌ Server error during signup" });
   }
 });
 
-// ===== Login =====
+// ====== Login Route ======
 app.post("/login", async (req, res) => {
   try {
+    // DEBUG — mask password in logs
+    console.log("📩 /login body:", { email: req.body?.email, password: req.body?.password ? "***" : undefined });
+
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "Invalid email or password" });
+    if (!user) {
+      console.log("⚠️ /login user not found:", email);
+      return res.status(400).json({ message: "⚠️ User not found" });
+    }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ error: "Invalid email or password" });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      console.log("⚠️ /login invalid password for:", email);
+      return res.status(400).json({ message: "⚠️ Invalid password" });
+    }
 
-    res.json({
-      ok: true,
-      userId: user._id.toString(),
-      user: { firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone }
-    });
+    console.log("✅ /login success:", email);
+    res.json({ message: "✅ Login successful", user });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ /login error:", err);
+    res.status(500).json({ message: "❌ Server error during login" });
   }
 });
 
-// ===== Skills Schema =====
-const skillSchema = new mongoose.Schema({
-  userId: String,
-  offer: String,
-  want: String
-});
-const Skill = mongoose.model("Skill", skillSchema);
-
-// ===== Add Skill =====
-app.post("/skills", async (req, res) => {
+// ====== Match Route ======
+app.get("/matches/:userId", async (req, res) => {
   try {
-    const { userId, offer, want } = req.body;
-    if (!userId || !offer || !want) {
-      return res.status(400).json({ error: "Missing fields" });
+    console.log("🔎 /matches requested for userId:", req.params.userId);
+
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      console.log("⚠️ /matches user not found:", req.params.userId);
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const newSkill = new Skill({ userId, offer, want });
-    await newSkill.save();
-
-    const match = await Skill.findOne({
-      offer: want,
-      want: offer,
-      userId: { $ne: userId }
+    const matches = await User.find({
+      offer: user.want,
+      want: user.offer,
+      _id: { $ne: user._id }
     });
 
-    if (match) {
-      res.json({ ok: true, message: "🎉 Match found!", match });
-    } else {
-      res.json({ ok: true, message: "✅ Skill added, waiting for a match" });
-    }
+    console.log("✅ /matches found:", matches.length);
+    res.json({ matches });
   } catch (err) {
-    console.error("Skill error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ /matches error:", err);
+    res.status(500).json({ message: "❌ Server error while finding matches" });
   }
 });
 
-// ===== Start Server =====
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// ====== Delete All Users (for testing only) ======
+app.get("/deleteAll", async (req, res) => {
+  try {
+    await User.deleteMany({});
+    res.json({ message: "🗑️ All users deleted successfully (via GET)" });
+  } catch (err) {
+    res.status(500).send("❌ Error deleting users");
+  }
+});
+
+// ====== Start Server ======
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
