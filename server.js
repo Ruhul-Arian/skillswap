@@ -34,9 +34,26 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+// ===== Test Route (check backend) =====
+app.get("/test", (req, res) => {
+  res.json({ message: "✅ Backend is alive" });
+});
+
+// ===== Check DB Connection =====
+app.get("/checkDB", async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json({ message: "✅ DB connected", count: users.length });
+  } catch (err) {
+    res.status(500).json({ message: "❌ DB error", error: err.message });
+  }
+});
+
 // ===== Signup Route =====
 app.post("/signup", async (req, res) => {
   try {
+    console.log("📩 Signup request received:", req.body);
+
     const { name, email, password, offer, want, phone, cell, whatsapp, facebook, zoom } = req.body;
 
     if (!name || !email || !password) {
@@ -56,10 +73,12 @@ app.post("/signup", async (req, res) => {
     });
 
     await newUser.save();
+    console.log("✅ New user saved:", newUser.email);
+
     res.json({ message: "✅ Signup successful", user: { id: newUser._id, email: newUser.email } });
   } catch (err) {
     console.error("❌ Signup error:", err);
-    res.status(500).json({ message: "❌ Server error during signup" });
+    res.status(500).json({ message: "❌ Server error during signup", error: err.message });
   }
 });
 
@@ -95,7 +114,7 @@ app.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Login error:", err);
-    res.status(500).json({ message: "❌ Server error during login" });
+    res.status(500).json({ message: "❌ Server error during login", error: err.message });
   }
 });
 
@@ -109,7 +128,7 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// ===== TEMP: Delete All Users (GET for browser) =====
+// ===== TEMP: Delete All Users =====
 app.get("/deleteAll", async (req, res) => {
   try {
     await User.deleteMany({});
