@@ -99,25 +99,21 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// ===== Debug Routes =====
+// ===== Debug Route (list users) =====
 app.get("/users", async (req, res) => {
   try {
     const users = await User.find();
-    res.json(users); // ✅ Always return JSON
+    res.json(users);
   } catch (err) {
     res.status(500).json({ message: "❌ Error fetching users" });
   }
 });
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", time: new Date() });
-});
-
-// ===== TEMP: Delete All Users =====
-app.delete("/deleteAll", async (req, res) => {
+// ===== TEMP: Delete All Users (GET for browser) =====
+app.get("/deleteAll", async (req, res) => {
   try {
     await User.deleteMany({});
-    res.json({ message: "⚠️ All users deleted (testing only)" });
+    res.json({ message: "🗑 All users deleted successfully (via GET)" });
   } catch (err) {
     res.status(500).json({ message: "❌ Error deleting users" });
   }
